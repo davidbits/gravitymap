@@ -97,7 +97,7 @@ So the Moon in this app should be read as:
 
 ## Pluto data
 
-Pluto is included because the user asked for the whole solar system, but the handling is less uniform than for the eight major planets.
+Pluto is included for completeness, but the handling is less uniform than for the eight major planets.
 
 The current implementation uses:
 
