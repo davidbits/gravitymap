@@ -1,60 +1,86 @@
 # gravitymap
 
-`gravitymap` generates a first post-Newtonian proper-time heatmap for the local solar system. The scalar field is
+`gravitymap` is an interactive solar-system proper-time viewer. It computes a first post-Newtonian scalar field
 
 ```text
-H(x) = [1 + Phi(x)/c^2 - v(x)^2/(2c^2)] / [1 + Phi_earth/c^2 - v_earth^2/(2c^2)]
+H(x) = [1 + Phi(x)/c^2 - v(x)^2/(2c^2)] / [1 + Phi_ref/c^2 - v_ref^2/(2c^2)]
 ```
 
-where the reference clock is a human at mean sea level on Earth's equator at local noon, using barycentric coordinate time and weak-field GR.
+and compares each sampled point to a configurable reference observer on Earth's surface.
 
-## What is implemented
+## What changed
 
-- A 1PN proper-time rate calculator using the Newtonian potential of the Sun, Earth, and optionally Jupiter
-- A circular-orbit solar-system approximation shifted into the barycentric frame
-- An Earth-surface reference clock that includes Earth's orbital and rotational motion
-- A CLI that samples a 2D ecliptic slice and renders a heatmap image
-- Optional export of the raw field data as a compressed NumPy archive
+- The project now uses sourced body data for the Sun, Moon, Mercury through Neptune, and Pluto.
+- Planetary positions are date-dependent instead of fixed circular placeholders.
+- There is an interactive UI built with Streamlit and Plotly.
+- The export CLI still exists for writing PNG and `.npz` outputs.
 
-## Assumptions
+## Sources used in the implementation
 
-- Weak-field, slow-motion regime only
-- Circular orbits for Earth and Jupiter, not JPL ephemerides
-- Bodies modeled as uniform spheres to avoid singular potentials inside their radii
-- Grid clocks use either barycentric rest (`stationary`) or a Sun-centered circular-orbit approximation (`circular-solar-orbit`)
-- Earth's obliquity, the Moon, and higher-order PN corrections are omitted
+- JPL Approximate Positions of the Planets
+  https://ssd.jpl.nasa.gov/planets/approx_pos.html
+- JPL Planetary Physical Parameters
+  https://ssd.jpl.nasa.gov/planets/phys_par.html
+- NASA Sun Fact Sheet
+  https://nssdc.gsfc.nasa.gov/planetary/factsheet/sunfact.html?level=1
+- JPL Planetary Satellite Physical Parameters
+  https://ssd.jpl.nasa.gov/sats/phys_par/
+- JPL Planetary Satellite Mean Elements
+  https://ssd.jpl.nasa.gov/sats/elem/
+- NASA Pluto Fact Sheet
+  https://nssdc.gsfc.nasa.gov/planetary/factsheet/plutofact.html?level=1
+- NIST: A Relativistic Framework to Establish Coordinate Time on the Moon and Beyond
+  https://www.nist.gov/publications/relativistic-framework-establish-coordinate-time-moon-and-beyond
+- Ashby and Nelson, Relativity in Fundamental Astronomy
+  https://tf.nist.gov/general/pdf/2444.pdf
 
-## Usage
+## Physics model
 
-Install dependencies and run the default render:
+- Weak-field, slow-motion 1PN approximation only
+- All clock rates are compared at a common barycentric coordinate time
+- Potentials are summed from the included bodies
+- Interior potentials are uniform-sphere approximations so the field stays finite inside each body
+- Planetary positions use JPL's approximate element series, which are valid from 1800 through 2050
+- The Moon uses JPL mean elements, which are descriptive rather than full ephemerides
+- Pluto uses NASA fact-sheet J2000 elements with mean motion inferred from the cited sidereal period
+
+## Install
 
 ```bash
 uv sync
-uv run python -m gravitymap
 ```
 
-Or use the console script:
+## Launch the UI
 
 ```bash
-uv run gravitymap --output outputs/solar-system.png --data-output outputs/solar-system.npz
+uv run gravitymap-ui
 ```
 
-Useful options:
+This starts a local Streamlit app. The sidebar lets you change:
 
-- `--velocity-model stationary`
+- UTC date and hour
+- view scale and slice height
+- grid velocity model
+- reference latitude, local solar time, and altitude
+- Moon and Pluto inclusion
+
+## Export a static heatmap
+
+```bash
+uv run python -m gravitymap --output outputs/gravitymap.png --data-output outputs/gravitymap.npz
+```
+
+Useful flags:
+
+- `--date 2026-04-05`
+- `--utc-hour 12`
+- `--width-au 90 --height-au 90`
+- `--resolution 700`
+- `--velocity-model stationary-barycentric`
 - `--velocity-model circular-solar-orbit`
-- `--width-au 12 --height-au 12`
-- `--resolution 600`
-- `--no-jupiter`
-- `--earth-phase-deg 0 --jupiter-phase-deg 60`
-
-## Output
-
-The PNG heatmap colors `(H - 1) * 1e9`, so the colorbar is in parts per billion relative to the Earth-surface reference clock. The optional `.npz` file stores:
-
-- `x_au`
-- `y_au`
-- `ratio`
+- `--latitude-deg 0 --solar-time-hours 12`
+- `--no-moon`
+- `--no-pluto`
 
 ## Tests
 

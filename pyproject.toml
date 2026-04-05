@@ -4,14 +4,18 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gravitymap"
-version = "0.1.0"
-description = "Generate a first post-Newtonian proper-time heatmap for the local solar system."
+version = "0.2.0"
+description = "Interactive solar-system proper-time heatmaps using sourced orbital data and a 1PN relativistic model."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "matplotlib>=3.9,<4",
     "numpy>=2,<3",
+    "pandas>=2.2,<3",
+    "plotly>=6,<7",
+    "streamlit>=1.44,<2",
 ]
 
 [project.scripts]
 gravitymap = "gravitymap.cli:main"
+gravitymap-ui = "gravitymap.ui:main"
